@@ -1,0 +1,111 @@
+version: "3.9"
+
+x-common-variables: &common-variables
+    DEBUG: true
+    DJANGO_SETTINGS_MODULE: infinix.settings.dev
+    RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@${RABBITMQ_HOST}:${RABBITMQ_AMQP_PORT}/
+
+x-common-env-file: &common-env-file
+    env_file:
+        - ./.env
+
+services:
+    api:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: dericsolen/unsplash:1.0.0
+        entrypoint: /apps/entrypoint.sh
+        restart: always
+        <<: *common-env-file
+        environment:
+            <<: *common-variables
+        volumes:
+            - ".:/apps"
+            - "./temp:/apps/temp"
+            - "./infinix/data/mediafiles:/apps/infinix/data/mediafiles"
+        ports:
+            - "0.0.0.0:${API_PORT:-8001}:8000"
+        depends_on:
+            unsplash_database:
+                condition: service_started
+            rabbitmq:
+                condition: service_started
+        networks:
+            unsplash_network:
+                ipv4_address: ${API_IP_ADDRESS}
+        stdin_open: true
+        tty: true
+
+    unsplash_database:
+        image: postgres:16
+        container_name: unsplash
+        <<: *common-env-file
+        restart: always
+        volumes:
+            - pg_data_unsplash:/var/lib/postgresql/data
+        ports:
+            - "9001:5432"
+        networks:
+            unsplash_network:
+                ipv4_address: 192.168.93.146
+
+    pgadmin:
+        container_name: pgadmin_container
+        image: dpage/pgadmin4:latest
+        environment:
+            PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+            PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+            PGADMIN_CONFIG_SERVER_MODE: "False"
+        volumes:
+            - pgadmin:/var/lib/pgadmin
+        ports:
+            - "${PGADMIN_PORT:-5050}:80"
+        restart: unless-stopped
+        networks:
+            unsplash_network:
+                ipv4_address: 192.168.93.147
+
+    rabbitmq:
+        image: rabbitmq:management-alpine
+        container_name: rabbitmq
+        ports:
+            - "${RABBITMQ_AMQP_PORT:-5672}:5672"
+            - "${RABBITMQ_MINTERFACE_PORT:-15672}:15672"
+        environment:
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+        networks:
+            unsplash_network:
+                ipv4_address: 192.168.93.148
+
+    celery:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        command: celery -A infinix worker -l info
+        depends_on:
+            api:
+                condition: service_started
+        <<: *common-env-file
+        environment:
+            <<: *common-variables
+        volumes:
+            - "./temp:/apps/temp"
+            - "./infinix/data/mediafiles:/apps/infinix/data/mediafiles"
+        networks:
+            unsplash_network:
+                ipv4_address: 192.168.93.149
+
+volumes:
+    pg_data_unsplash:
+        external: false
+    pgadmin:
+        external: false
+
+networks:
+    unsplash_network:
+        ipam:
+            driver: default
+            config:
+                - subnet: ${API_ADDRESS_RANGE}

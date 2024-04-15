@@ -1,0 +1,6 @@
+infinix/data
+.env
+.venv
+.gitignore
+temp
+env_variables
