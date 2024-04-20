@@ -32,7 +32,7 @@ services:
             rabbitmq:
                 condition: service_started
         networks:
-            unsplash_network:
+            unsplash_network_be:
                 ipv4_address: ${API_IP_ADDRESS}
         stdin_open: true
         tty: true
@@ -47,8 +47,7 @@ services:
         ports:
             - "9001:5432"
         networks:
-            unsplash_network:
-                ipv4_address: 192.168.93.146
+            - unsplash_network_be
 
     pgadmin:
         container_name: pgadmin_container
@@ -63,8 +62,7 @@ services:
             - "${PGADMIN_PORT:-5050}:80"
         restart: unless-stopped
         networks:
-            unsplash_network:
-                ipv4_address: 192.168.93.147
+            - unsplash_network_be
 
     rabbitmq:
         image: rabbitmq:management-alpine
@@ -76,8 +74,7 @@ services:
             RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
             RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
         networks:
-            unsplash_network:
-                ipv4_address: 192.168.93.148
+            - unsplash_network_be
 
     celery:
         build:
@@ -94,8 +91,7 @@ services:
             - "./temp:/apps/temp"
             - "./infinix/data/mediafiles:/apps/infinix/data/mediafiles"
         networks:
-            unsplash_network:
-                ipv4_address: 192.168.93.149
+            - unsplash_network_be
 
 volumes:
     pg_data_unsplash:
@@ -104,7 +100,7 @@ volumes:
         external: false
 
 networks:
-    unsplash_network:
+    unsplash_network_be:
         ipam:
             driver: default
             config:

@@ -16,6 +16,11 @@ function run_server() {
     python3 manage.py runserver "0.0.0.0:$1"
 }
 
+
+# auto-generates Django models by introspecting an existing database, which is incredibly useful when integrating Django into a project with a pre-existing database.
+# python manage.py inspectdb
+# python3 manage.py check --deploy
+
 run_db_migration
 create_superuser
 

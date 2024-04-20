@@ -11,6 +11,18 @@ from apps.users import models
 from apps.users.choices import GenderType
 
 
+@strawberry_django.type(model=models.User)
+class BaseUserType:
+    username: auto
+    email: auto
+    gender: auto
+    location: auto
+    website: auto
+    bio: auto
+    interests: auto
+    phone_number: auto
+
+
 # Define User Type
 @strawberry_django.type(model=models.User)
 class UserTypeNode(strawberry.relay.Node):
@@ -42,7 +54,7 @@ class UserInput:
         # Initialize an empty dictionary to store the user input
         user_dict = {}
 
-        # Iterate over the fields in the class  
+        # Iterate over the fields in the class
         for field_name in self.__annotations__:
             # Get the value of the field using getattr
             field_value = getattr(self, field_name)

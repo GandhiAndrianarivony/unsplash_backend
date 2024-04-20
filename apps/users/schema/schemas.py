@@ -4,15 +4,17 @@ from rest_framework import status
 from rest_framework.exceptions import ValidationError
 
 import strawberry
+from strawberry.types import Info
 import strawberry_django
 from strawberry_django.type import UNSET
 
-from .types import UserInput, UserTypeNode
+from .types import UserInput, UserTypeNode, BaseUserType
 from infinix.helpers import set_status_code
 
 from apps.users.models import User
 from apps.users.filters import UserFilter
 from apps.users.serializers import UserSerializer
+from apps.authentications.authentications import IsAuthenticated
 
 
 @strawberry.type
@@ -34,6 +36,12 @@ class Query:
             qs = strawberry_django.filters.apply(filters, qs)
 
         return qs
+    
+    @strawberry_django.field(
+        permission_classes=[IsAuthenticated]
+    )
+    def get_current_user(self, info: Info)-> BaseUserType:
+        return info.context.request.user
 
 @strawberry.type
 class Mutation:
