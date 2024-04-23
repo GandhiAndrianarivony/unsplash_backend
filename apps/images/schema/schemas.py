@@ -113,7 +113,10 @@ class Mutation:
         """Upload image file"""
 
         user = info.context.request.user
-        fn = image_helpers.save_uploaded_file(file, dest="temp")
+        try:
+            fn = image_helpers.save_uploaded_file(file, dest="temp")
+        except:
+            return {"ErrorMessage": "Wrong upload! Check your file"}
         tasks.save_image.delay(filename=fn, user_id=user.id)
 
         return "Uploaded"
