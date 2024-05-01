@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "apps.users",
     "apps.images",
     "apps.common_models",
+    "apps.user_profiles",
 ]
 
 MIDDLEWARE = [

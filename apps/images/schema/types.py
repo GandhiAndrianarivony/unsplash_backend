@@ -4,6 +4,7 @@ import strawberry
 import strawberry_django
 
 from apps.images import models
+from apps.user_profiles.schema.types import UserProfileType
 
 
 @strawberry_django.type(model=models.User)
@@ -17,6 +18,7 @@ class ImageOwnerNode(strawberry.relay.Node):
     bio: strawberry.auto
     interests: strawberry.auto
     phone_number: strawberry.auto
+    profile: UserProfileType
 
 
 @strawberry_django.type(model=models.Image)
@@ -37,4 +39,3 @@ class ImageTypeNode(strawberry.relay.Node):
 class CollectionTypeNode(strawberry.relay.Node):
     id: strawberry.relay.NodeID[int]
     name: strawberry.auto
-    

@@ -17,6 +17,7 @@ from apps.images.models import (
 from apps.images.filters import ImageFilter, CollectionFilter
 from apps.images import exceptions, tasks, helpers as image_helpers, services
 from apps.authentications.authentications import IsAuthenticated
+from apps.users.services import create_default_profile
 
 from infinix.common_schema.types import JSON
 from infinix import helpers
@@ -109,17 +110,24 @@ class Query:
 @strawberry.type
 class Mutation:
     @strawberry.mutation(permission_classes=[IsAuthenticated])
-    def upload_file(self, info: Info, file: Upload) -> str:
+    def upload_file(self, info: Info, file: Upload) -> JSON:
         """Upload image file"""
 
         user = info.context.request.user
+
+        try:
+            _ = user.profile
+        except:
+            create_default_profile(user)
+
         try:
             fn = image_helpers.save_uploaded_file(file, dest="temp")
         except:
+            helpers.set_status_code(info=info, status_code=status.HTTP_400_BAD_REQUEST)
             return {"ErrorMessage": "Wrong upload! Check your file"}
         tasks.save_image.delay(filename=fn, user_id=user.id)
 
-        return "Uploaded"
+        return {"status": "[INFO] File uploaded"}
 
     @strawberry.mutation(
         permission_classes=[IsAuthenticated], description="Delete image"
@@ -129,7 +137,9 @@ class Mutation:
 
         try:
             img_id = helpers.get_id(image_id)
-            image = Image.objects.get(id=img_id)
+            image = Image.objects.get(
+                id=img_id, user=info.context.request.user
+            )  # Owned image can only be deleted
             services.delete_image(image, info)
         except Image.DoesNotExist:
             raise exceptions.ImageNotFound(
