@@ -14,7 +14,7 @@ def predict(
         # Conver prediction to probability using softmax
         pred_proba = torch.softmax(pred_logit, dim=1)
         pred_label = torch.argmax(pred_proba, dim=1)
-    
+
     pred_proba = pred_proba.squeeze()
     category_name = categories[pred_label.item()]
     print(f"Category: {category_name} --> {100 * pred_proba[pred_label].item(): .1f}%")

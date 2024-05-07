@@ -1,5 +1,7 @@
 import typing
 
+from django.db import transaction
+
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 
@@ -15,6 +17,7 @@ from apps.users.models import User
 from apps.users.filters import UserFilter
 from apps.users.serializers import UserSerializer
 from apps.authentications.authentications import IsAuthenticated
+from apps.users.services import create_default_profile
 
 
 @strawberry.type
@@ -36,12 +39,11 @@ class Query:
             qs = strawberry_django.filters.apply(filters, qs)
 
         return qs
-    
-    @strawberry_django.field(
-        permission_classes=[IsAuthenticated]
-    )
-    def get_current_user(self, info: Info)-> BaseUserType:
+
+    @strawberry_django.field(permission_classes=[IsAuthenticated])
+    def get_current_user(self, info: Info) -> BaseUserType:
         return info.context.request.user
+
 
 @strawberry.type
 class Mutation:
@@ -56,6 +58,10 @@ class Mutation:
             set_status_code(info, status.HTTP_400_BAD_REQUEST)
             raise ValidationError(serializer.errors)
 
-        user = User.objects.create_user(**serializer.data)
+        with transaction.atomic():
+            user = User.objects.create_user(**serializer.data)
 
-        return user
+            # TODO: Create default user profile
+            create_default_profile(user)
+            return user
+        

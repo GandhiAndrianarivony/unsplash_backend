@@ -8,6 +8,7 @@ WORKDIR /apps
 
 COPY ./requirements.txt .
 RUN pip install -r requirements.txt
+RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
 COPY ./entrypoint.sh .
 RUN chmod +x ./entrypoint.sh

@@ -163,3 +163,4 @@ data
 env_variables
 *.pth
 *.pkl
+vit_gpt2_image_captioning/

@@ -9,6 +9,7 @@ from apps.images.schema import types
 
 from apps.users import models
 from apps.users.choices import GenderType
+from apps.user_profiles.schema.types import UserProfileType
 
 
 @strawberry_django.type(model=models.User)
@@ -21,6 +22,7 @@ class BaseUserType:
     bio: auto
     interests: auto
     phone_number: auto
+    profile: UserProfileType
 
 
 # Define User Type
