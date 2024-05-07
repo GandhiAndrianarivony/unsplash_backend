@@ -60,8 +60,8 @@ class Mutation:
 
         with transaction.atomic():
             user = User.objects.create_user(**serializer.data)
-            
+
             # TODO: Create default user profile
             create_default_profile(user)
-
-        return user
+            return user
+        

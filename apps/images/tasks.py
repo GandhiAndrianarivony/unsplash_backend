@@ -28,12 +28,13 @@ def save_image(filename, user_id):
     image_category = image_services.predict_image_category(image)
 
     # TODO: Get image description
+    image_ai_description = image_services.generate_image_description(image)
 
     uploaded_file = image_services.pil_to_inmemory_uploaded_file(image, filename)
     user = User.objects.get(id=user_id)
 
     print("[INFO] Save image")
-    image = image_services.save_image(uploaded_file, user, image_category)
+    image = image_services.save_image(uploaded_file, user, image_category, image_ai_description)
 
     # Delete image from temp
     remove_tempory([filename])

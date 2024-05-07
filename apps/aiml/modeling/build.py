@@ -19,6 +19,6 @@ class PreTrainModel(nn.Module):
     def _load_model(self):
         config = Config()
         return getattr(config, self.architecture)()
-    
+
     def _load_state_dict(self, model_name):
         self.model.load_state_dict(torch.load(model_name))
