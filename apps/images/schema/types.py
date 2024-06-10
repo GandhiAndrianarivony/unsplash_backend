@@ -1,5 +1,4 @@
-import typing
-
+from typing import Optional, List
 import strawberry
 import strawberry_django
 
@@ -39,3 +38,10 @@ class ImageTypeNode(strawberry.relay.Node):
 class CollectionTypeNode(strawberry.relay.Node):
     id: strawberry.relay.NodeID[int]
     name: strawberry.auto
+
+
+@strawberry.type
+class TCollectionResponse:
+    status_code: int
+    error_message: Optional[str] = None
+    status_message: str

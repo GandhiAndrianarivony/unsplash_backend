@@ -22,7 +22,7 @@ from apps.users.services import create_default_profile
 from infinix.common_schema.types import JSON
 from infinix import helpers
 
-from .types import ImageTypeNode, CollectionTypeNode
+from .types import ImageTypeNode, CollectionTypeNode, TCollectionResponse
 
 
 @strawberry.type
@@ -180,22 +180,34 @@ class Mutation:
         permission_classes=[IsAuthenticated],
         description="Create a new collection",
     )
-    def create_collection(self, info, name: str) -> JSON:
+    def create_collection(self, info, name: str) -> TCollectionResponse:
         """Create a new collection"""
 
         user = info.context.request.user
 
         # TODO: check if collection name already exists in user's collections
         name = name.lower()
-        collection_names = Collection.objects.values_list("name", flat=True)
+        # collection_names = Collection.objects.values_list("name", flat=True)
+        _ = Collection.objects.filter(name=name, user=user).first()
+        if _:
+            return TCollectionResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status_message="FAILED",
+                error_message=f"⚠️ Named Collection {name.capitalize()} already exists",
+            )
+        else:
+            Collection.objects.create(name=name, user=user)
+            return TCollectionResponse(
+                status_code=status.HTTP_201_CREATED,
+                status_message="COMPLETED",
+            )
 
-        if name in collection_names:
-            helpers.set_status_code(info, status.HTTP_208_ALREADY_REPORTED)
-            return {"message": f"Collection with name {name} already exists"}
+        # if name in collection_names:
+        #     helpers.set_status_code(info, status.HTTP_208_ALREADY_REPORTED)
+        #     return {"message": f"Collection with name {name} already exists"}
 
-        helpers.set_status_code(info, status.HTTP_201_CREATED)
-        Collection.objects.create(name=name, user=user)
-        return {"message": f"New collection ({name}) created."}
+        # helpers.set_status_code(info, status.HTTP_201_CREATED)
+        # return {"message": f"New collection ({name}) created."}
 
     @strawberry.mutation(
         permission_classes=[IsAuthenticated],

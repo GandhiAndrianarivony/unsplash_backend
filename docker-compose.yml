@@ -94,6 +94,12 @@ services:
         restart: always
         networks:
             - unsplash_network_be
+        # Limit resource usage 
+        deploy:
+            resources:
+                limits:
+                    cpus: '0.5'
+                    memory: 2048M
 
 volumes:
     pg_data_unsplash:
