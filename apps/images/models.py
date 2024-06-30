@@ -16,6 +16,7 @@ class Image(models.Model):
     user = models.ForeignKey(
         User, related_name="images", on_delete=models.CASCADE, null=True
     )
+    users_like = models.ManyToManyField(User, related_name="likes")
     file_name = models.CharField(max_length=255, null=True)
     image_url = models.ImageField(upload_to=upload_to, null=True)
     base_url = models.TextField(null=True)

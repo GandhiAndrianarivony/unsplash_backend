@@ -1,4 +1,5 @@
 import typing
+from typing import Optional
 
 import strawberry
 import strawberry_django
@@ -12,45 +13,34 @@ from apps.users.choices import GenderType
 from apps.user_profiles.schema.types import UserProfileType
 
 
+@strawberry.interface
+class UserCommonFieldType:
+    username: str
+    email: str
+    gender: GenderType
+    location: Optional[str] = None
+    website: Optional[str] = None
+    bio: Optional[str] = None
+    interests: Optional[str] = None
+    phone_number: Optional[str] = None
+
+
 @strawberry_django.type(model=models.User)
-class BaseUserType:
-    username: auto
-    email: auto
-    gender: auto
-    location: auto
-    website: auto
-    bio: auto
-    interests: auto
-    phone_number: auto
+class BaseUserType(UserCommonFieldType):
+    id: auto
     profile: UserProfileType
 
 
 # Define User Type
 @strawberry_django.type(model=models.User)
-class UserTypeNode(strawberry.relay.Node):
+class UserTypeNode(UserCommonFieldType, strawberry.relay.Node):
     id: strawberry.relay.NodeID[int]
-    username: auto
-    email: auto
-    gender: auto
-    location: auto
-    website: auto
-    bio: auto
-    interests: auto
-    phone_number: auto
     images: typing.List[types.ImageTypeNode]
 
 
 @strawberry_django.input(model=models.User)
-class UserInput:
-    username: auto
-    email: auto
+class UserInput(UserCommonFieldType):
     password: auto
-    gender: GenderType
-    location: auto
-    website: auto
-    bio: auto
-    interests: auto
-    phone_number: auto
 
     def to_dict(self) -> dict:
         # Initialize an empty dictionary to store the user input
@@ -66,3 +56,7 @@ class UserInput:
                 user_dict[field_name] = field_value
 
         return user_dict
+
+
+@strawberry_django.input(model=models.User)
+class UserUpdatableInput(UserCommonFieldType): ...

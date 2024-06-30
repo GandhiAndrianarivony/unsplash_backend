@@ -11,11 +11,11 @@ from infinix.helpers import set_status_code
 
 
 class IsAuthenticated(BasePermission):
-    message = "User not authorized"
+    message = "User not Authenticated"
 
     def has_permission(self, source: Any, info: Info, **kwargs: Any) -> bool:
         request = info.context.request
-        
+
         if "Authorization" in request.headers:
             jwt_token = request.headers.get("Authorization")
             user = authenticate_header(jwt_token)

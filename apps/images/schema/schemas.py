@@ -22,7 +22,7 @@ from apps.users.services import create_default_profile
 from infinix.common_schema.types import JSON
 from infinix import helpers
 
-from .types import ImageTypeNode, CollectionTypeNode, TCollectionResponse
+from .types import ImageTypeNode, CollectionTypeNode, TCollectionResponse, HTTPResponse
 
 
 @strawberry.type
@@ -254,3 +254,72 @@ class Mutation:
             )
 
         return image
+
+    @strawberry_django.mutation(
+        description="Remove an image from a collection",
+        permission_classes=[IsAuthenticated],
+    )
+    def remove_image_from_collection(
+        self, info: Info, image_id: str, collection_id: str
+    ) -> HTTPResponse:
+        try:
+            image_id = helpers.get_id(image_id)
+            collection_id = helpers.get_id(collection_id)
+
+            image_collections = ImageCollection.objects.filter(
+                Q(image__id=image_id) & Q(collection__id=collection_id)
+            )
+        except ImageCollection.DoesNotExist:
+            return HTTPResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status_message="FAILED",
+            )
+
+        image_collections.delete()
+
+        return HTTPResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            status_message="Unable to remove image.",
+        )
+
+    @strawberry_django.mutation(
+        description="Like image",
+        permission_classes=[IsAuthenticated],
+    )
+    def like_image(self, info: Info, image_id: str) -> HTTPResponse:
+        user = info.context.request.user
+        try:
+            image_id = helpers.get_id(image_id)
+            image = Image.objects.filter(id=image_id).first()
+
+            # Like the image
+            user.likes.add(image)
+        except Image.DoesNotExist:
+            return HTTPResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status_message=f"Image with id {image_id} not found",
+            )
+        return HTTPResponse(
+            status_code=status.HTTP_200_OK, status_message="Successfully liked image"
+        )
+    
+    @strawberry_django.mutation(
+        description="Unlike image",
+        permission_classes=[IsAuthenticated]
+    )
+    def unlike_image(self, info: Info, image_id: str) -> HTTPResponse:
+        user = info.context.request.user
+
+        try:
+            image_id = helpers.get_id(image_id)
+            image = Image.objects.filter(id=image_id).first()
+            user.likes.remove(image)
+        except Image.DoesNotExist:
+            return HTTPResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                status_message=f"Image with id {image_id} not found",
+            )
+        return HTTPResponse(
+            status_code=status.HTTP_200_OK, status_message="Successfully unliked image"
+        )
+    

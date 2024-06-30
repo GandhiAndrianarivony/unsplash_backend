@@ -32,12 +32,27 @@ class ImageTypeNode(strawberry.relay.Node):
     category: strawberry.auto
     created_at: strawberry.auto
     user: ImageOwnerNode
+    users_like: strawberry.auto # List[User]
+
+
+@strawberry_django.type(model=models.ImageCollection)
+class ImageCollectionTypeNode(strawberry.relay.Node):
+    id: strawberry.relay.NodeID[int]
+    collection: strawberry.auto
+    image: ImageTypeNode  # strawberry.auto
 
 
 @strawberry_django.type(model=models.Collection)
 class CollectionTypeNode(strawberry.relay.Node):
     id: strawberry.relay.NodeID[int]
     name: strawberry.auto
+    images: List[ImageCollectionTypeNode]
+
+
+@strawberry.type
+class HTTPResponse:
+    status_code: int
+    status_message: str
 
 
 @strawberry.type

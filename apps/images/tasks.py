@@ -27,7 +27,7 @@ def save_image(filename, user_id):
     # Get image category
     image_category = image_services.predict_image_category(image)
 
-    # TODO: Get image description
+    # Get image description
     image_ai_description = image_services.generate_image_description(image)
 
     uploaded_file = image_services.pil_to_inmemory_uploaded_file(image, filename)

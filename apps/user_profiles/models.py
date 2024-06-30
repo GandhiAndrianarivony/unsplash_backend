@@ -2,7 +2,7 @@ from pathlib import Path
 from django.db import models
 
 from apps.users.models import User
-from apps.common_models.models import TimeStamped
+from apps.common_models.models import TimeStamped, BaseImage
 
 
 def upload_to(instance, filename):
@@ -17,3 +17,10 @@ class UserProfile(TimeStamped):
     file_name = models.CharField(max_length=255, null=True)
     image_url = models.ImageField(upload_to=upload_to, null=True)
     base_url = models.TextField(null=True)
+
+
+class UserCoverPhoto(BaseImage):
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="cover_photo"
+    )
+    

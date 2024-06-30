@@ -6,11 +6,17 @@ from rest_framework import status
 from rest_framework.exceptions import ValidationError
 
 import strawberry
-from strawberry.types import Info
 import strawberry_django
+from strawberry import asdict
+from strawberry.types import Info
 from strawberry_django.type import UNSET
 
-from .types import UserInput, UserTypeNode, BaseUserType
+from .types import (
+    UserInput,
+    UserTypeNode,
+    BaseUserType,
+    UserUpdatableInput,
+)
 from infinix.helpers import set_status_code
 
 from apps.users.models import User
@@ -48,7 +54,7 @@ class Query:
 @strawberry.type
 class Mutation:
     @strawberry.mutation
-    def create_user(self, info, input: UserInput) -> UserTypeNode:
+    def create_user(self, info: Info, input: UserInput) -> UserTypeNode:
         data = input.to_dict()
         data["gender"] = data["gender"].value
 
@@ -64,4 +70,23 @@ class Mutation:
             # TODO: Create default user profile
             create_default_profile(user)
             return user
-        
+
+    @strawberry_django.mutation(
+        permission_classes=[IsAuthenticated],
+        description="Updata user information",
+    )
+    def update_user_info(
+        self,
+        info: Info,
+        input: UserUpdatableInput,
+    ) -> UserTypeNode:
+        """Update user information"""
+        user = info.context.request.user
+
+        data = asdict(input)
+        data["gender"] = data.get("gender", None).value
+
+        serializer = UserSerializer(user, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return user
