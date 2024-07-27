@@ -54,7 +54,7 @@ class Query:
             qs = qs.filter(
                 Q(category__icontains=search)
                 | Q(description__icontains=search)
-                | Q(ai_description__icontains=search)
+                # | Q(ai_description__icontains=search)
             )
         return qs
 

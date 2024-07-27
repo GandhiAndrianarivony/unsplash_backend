@@ -10,7 +10,10 @@ from apps.images.schema import types
 
 from apps.users import models
 from apps.users.choices import GenderType
-from apps.user_profiles.schema.types import UserProfileType
+from apps.user_profiles.schema.types import (
+    UserProfileType,
+    UserCoverPhotoType,
+)
 
 
 @strawberry.interface
@@ -29,6 +32,7 @@ class UserCommonFieldType:
 class BaseUserType(UserCommonFieldType):
     id: auto
     profile: UserProfileType
+    cover_photo: UserCoverPhotoType
 
 
 # Define User Type
